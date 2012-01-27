@@ -1,0 +1,43 @@
+body {
+	background: #444;
+}
+
+.hidden {
+	display: none;
+}
+
+.button {
+	border: 0px solid;
+	width: 90px;
+	height: 90px;
+	margin: 2px 0px 2px 0px;
+	color: white;
+	background-color: gray;
+	font-size: 14pt;
+}
+
+.button_container {
+	vertical-align: middle;
+	text-align: center;
+}
+
+img {
+	border: 0px;
+}
+
+.blank {
+	border: 0px;
+	background-color: transparent;
+}
+
+.w1 {
+	width: 90px;
+}
+
+.w2 {
+	width: 184px;
+}
+
+.h1_2 {
+	height: 43px;
+}

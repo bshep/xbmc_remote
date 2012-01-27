@@ -1,4 +1,4 @@
-<html>
+<html manifest="site.manifest">
     <head>
         <title>Remote</title>
     </head>
@@ -7,12 +7,17 @@
     <meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; width=device-width;">
     <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 
-    <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8">
-    <script src="jquery.js" type="text/javascript" charset="utf-8"></script>
-    <script src="remote.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="css/jquery-ui.css" type="text/css" media="screen" charset="utf-8">
+
+    <script src="js/jquery.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/jquery-ui.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/remote.js" type="text/javascript" charset="utf-8"></script>
+    
     <body>
         <div id="rotation0" class="button_container">
             <button class="button w1 blank">&nbsp;</button>
+            <button class="button" style="position: absolute;left: 10px;top: 10px;width: 30px;height: 30px" data="config">C</button>
             <button class="button" data="0xF026">Up</button>
             <button class="button w1 blank">&nbsp;</button>
             <br>
@@ -31,6 +36,13 @@
             <button class="button h1_2" data="0xF0BD">Vol -</button>
             <button class="button h1_2" data="0xF0BB">Vol +</button>
             <br>
+        </div>
+        
+        <div id="config" class="hidden" title="Configuration">
+            <form>
+                <label for="host">Host: </label><input id="host" name="host" value=""><br>
+                <label for="host">Port: </label><input id="port" name="port" value=""><br>
+            </form>
         </div>
     </body>
 
