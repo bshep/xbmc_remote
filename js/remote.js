@@ -6,9 +6,6 @@ function isIOS() {
     return IsIOS = IsiPhone || IsiPad || IsiPod ;
 }
 
-var db = null;
-var config = [];
-
 $(document).ready(function() {
     if(!isIOS()) {
         $('.button').live('click', function() {
@@ -20,7 +17,6 @@ $(document).ready(function() {
         });
     }
     
-    initDB();
     initConfig();
     
     // $('body').bind('orientationchange', function(event) {
@@ -37,100 +33,28 @@ $(document).ready(function() {
 
 });
 
-function initDB(){
-    if(db){
-        return;
-    }
-    
-    db = window.openDatabase("xbmc_remote", "1","Settings Values", 1048576);
-    
-    db.transaction(
-        function(tx) {
-            tx.executeSql('CREATE TABLE IF NOT EXISTS config(key TEXT, value TEXT)', []);
-        },
-        function(err) {
-            console.log('initDB: Error: ' + err);
-        },
-        function() {
-            console.log('initDB: Success');
-        }
-    );
-}
-
-function saveDB(){
-    var action = 'update';
-    
-    if(!db){
-        initDB();
-    }
-    
-    db.transaction(
-        function(tx) {
-            for (key in config) {
-                console.log('Key: ' + key + ' Value: ' + config[key]);
-                tx.executeSql('UPDATE config SET value = ? WHERE key = ?', [ config[key], key ],
-                    function(tx,rs) {
-                        if(rs.rowsAffected == 0) {
-                            tx.executeSql('INSERT INTO config VALUES (?,?)', [ key, config[key] ]);
-                            action = 'insert';
-                        }
-                    });
-            }
-        },
-        function(err) {
-            console.log('saveDB: Error: ' + err);
-        },
-        function() {
-            console.log('saveDB: Success (' + action + ')');
-        }
-    );
-}
-
-
 function initConfig(){
-    db.transaction(
-        function(tx) {
-            tx.executeSql('SELECT key, value FROM config', [], function(tx, rs) {
-                for(var i = 0; i < rs.rows.length; i++) {
-                    var row = rs.rows.item(i);
-                    config[row['key']] = row['value'];
-                    // console.log(row['key'] + ' = ' + row['value']);
-                }
-            });
-        },
-        function(err) {
-            console.log('initConfig: Error: ' + err);
-        },
-        function() {
-            console.log('initConfig: Success');
-
-            checkValidConfig('host', 'localhost');
-            checkValidConfig('port', '80');
-
-            saveDB();
-            
-        }
-    );
-    
+    getConfigFromLocalStorage('host', 'localhost');
+    getConfigFromLocalStorage('port', '80');
 }
 
 function saveConfig(){
-    config['host'] = $('#config #host').val();
-    config['port'] = $('#config #port').val();
-
-    saveDB();
+    localStorage['host'] = $('#config #host').val();
+    localStorage['port'] = $('#config #port').val();
 }
 
-function checkValidConfig(key, defVal) {
-    if( config[key] == undefined ) {
+function getConfigFromLocalStorage(key, defVal) {
+    if( localStorage[key] == undefined ) {
         console.log('Set default for \'' + key + '\'');
-        config[key] = defVal;
+        localStorage[key] = defVal;
     }
+    
+    return localStorage[key];
 }
 
 function dumpConfig(){
-    for(key in config) { 
-        console.log('Key: ' + key + ' Value: ' + config[key]);
+    for(key in localStorage) { 
+        console.log('Key: ' + key + ' Value: ' + localStorage[key]);
     }
 }
 
@@ -142,8 +66,8 @@ function doCommand(cmd){
     if( cmd == "config" ) {
         console.log("Config!");
         
-        $('#config #host').val(config['host']);
-        $('#config #port').val(config['port']);
+        $('#config #host').val(getConfigFromLocalStorage('host'));
+        $('#config #port').val(getConfigFromLocalStorage('port'));
         
         $('#config').dialog( { 
             buttons: 
@@ -157,7 +81,7 @@ function doCommand(cmd){
         return;
     }
     
-    baseURL = "http://" + config['host'] + ":" + config['port'] + "/xbmcCmds/xbmcHttp";
+    baseURL = "http://" + getConfigFromLocalStorage('host') + ":" + getConfigFromLocalStorage('port') + "/xbmcCmds/xbmcHttp";
 
     data = "command=SetResponseFormat(WebHeader;False;WebFooter;False;header;console.log(\";footer;\");OpenTag; ;closetag; )";
     $.ajax({ url: baseURL, dataType: "jsonp", jsonp: false, cache: false, data: data });
