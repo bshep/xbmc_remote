@@ -9,50 +9,7 @@
 
     <link rel="stylesheet" href="style.css" type="text/css" media="screen" charset="utf-8">
     <script src="jquery.js" type="text/javascript" charset="utf-8"></script>
-    <script type="text/javascript" charset="utf-8">
-        var IsiPhone = navigator.userAgent.indexOf("iPhone") != -1 ;
-        var IsiPod = navigator.userAgent.indexOf("iPod") != -1 ;
-        var IsiPad = navigator.userAgent.indexOf("iPad") != -1 ;
-
-        var IsIOS = IsiPhone || IsiPad || IsiPod ;
-        
-        $(document).ready(function() {
-            if(!IsIOS) {
-                $('.button').live('click', function() {
-                    doCommand($(this).attr('data'));
-                });
-            } else {
-                $('.button').live('touchend', function() {
-                    doCommand($(this).attr('data'));
-                });
-            }
-            
-            // $('body').bind('orientationchange', function(event) {
-            //     rotation = window.orientation;
-            //     // alert('rotation = ' + rotation);
-            //     $('.button_container').addClass('hidden');
-            //     $('#rotation' + rotation).removeClass('hidden');
-            // });
-
-            $('body').live('touchmove', function(event) { 
-                event.preventDefault(); 
-                // alert('opened');
-            });
-
-        });
-        
-        function doCommand(cmd){
-            baseURL = "http://192.168.2.128/xbmcCmds/xbmcHttp";
-
-            data = "command=SetResponseFormat(WebHeader;False;WebFooter;False;header;console.log(\";footer;\");OpenTag; ;closetag; )";
-            $.ajax({ url: baseURL, dataType: "jsonp", jsonp: false, cache: false, data: data });
-            
-            data = {command: "SendKey(" + cmd + ")"};
-            $.ajax({ url: baseURL, dataType: "jsonp", jsonp: false, cache: false, data: data });                
-            
-        };
-        
-    </script>
+    <script src="remote.js" type="text/javascript" charset="utf-8"></script>
     <body>
         <div id="rotation0" class="button_container">
             <button class="button w1 blank">&nbsp;</button>
@@ -75,29 +32,6 @@
             <button class="button h1_2" data="0xF0BB">Vol +</button>
             <br>
         </div>
-        
-        <div id="rotation90" class="button_container hidden">
-            <button class="button w1 blank">&nbsp;</button>
-            <button class="button" data="0xF026">Up</button>
-            <button class="button w2" data="0xF050">Play/Pause</button>
-            <br>
-            <button class="button" data="0xF025">Left</button>
-            <button class="button" data="0xF00D">OK</button>
-            <button class="button" data="0xF027">Right</button>
-            <button class="button w1" data="0xF058">Stop</button>
-            <br>
-            <button class="button w1 blank">&nbsp;</button>
-            <button class="button" data="0xF028">Down</button>
-            <button class="button w2" data="0xF008">..</button>
-            <br>
-            <div style="position: relative; top: -94; left: -143;">
-                <button class="button h1_2" data="0xF0BB">Vol +</button><br>
-                <button class="button h1_2" data="0xF0BD">Vol -</button>
-            </div>
-            <br>
-            <br>
-        </div>
-        
     </body>
 
 </html>
