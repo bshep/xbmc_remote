@@ -6,6 +6,8 @@ function isIOS() {
     return IsIOS = IsiPhone || IsiPad || IsiPod ;
 }
 
+var XBMCversion = null;
+
 $(document).ready(function() {
     if(!isIOS()) {
         $('.button').live('click', function() {
@@ -18,6 +20,9 @@ $(document).ready(function() {
     }
     
     initConfig();
+    
+    
+    checkXBMCversion();
     
     // $('body').bind('orientationchange', function(event) {
     //     rotation = window.orientation;
@@ -32,6 +37,48 @@ $(document).ready(function() {
     });
 
 });
+
+function checkXBMCversion(){
+    var baseURL = baseURL = "http://" + getConfigFromLocalStorage('host') + ":" + getConfigFromLocalStorage('port') + "/xbmcCmds/xbmcHttp?command=";
+    var versionCMD = baseURL + "GetSystemInfoByName(system.buildversion)";
+    var formatCMD = baseURL + "SetResponseFormat(WebHeader;false;WebFooter;false;OpenTag;)";
+    
+    sendByProxy(formatCMD, "", 
+        function(data) {
+            console.log(data);
+        
+            sendByProxy(versionCMD, "",
+                function(data) {
+                    XBMCversion = data.split(" ")[0].split("-");
+            
+                    console.log("Version: "  + data);
+
+                    $("#xbmcVersion").text(XBMCversion[0]);
+                });
+        }
+    );
+    
+}
+
+function sendByProxy(url, data, successfn, errorfn){
+    proxyURL = "proxy.php";
+    proxyData = {  url: url,
+                   data: data
+                };
+    
+    $.ajax({ type:"GET", 
+             url: proxyURL, 
+             dataType: "json", 
+             cache: true, 
+             data: proxyData, 
+             success: function(data) {
+                 successfn(data.contents);
+             },
+             error: function(data) {
+                 errorfn(data.contents);
+             }
+    });
+}
 
 function initConfig(){
     getConfigFromLocalStorage('host', 'localhost');
@@ -82,39 +129,31 @@ function doCommand(cmd){
         return;
     }
     
-    
-    proxyURL = "proxy.php";
     baseURL = "http://" + getConfigFromLocalStorage('host') + ":" + getConfigFromLocalStorage('port') + "/jsonrpc";
-
+    
     // data = {command: "SendKey(" + cmd + ")"};
     if( cmd == "Player.PlayPause" || cmd == "Player.Stop") {
-        data = {  url: baseURL,
-                  data: '{"jsonrpc":"2.0", "method":"Player.GetActivePlayers", "id":2}'
-               };
-
-        $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data, success: function(data){
-            players = data;
-            
-            for (var player in players.contents.result) {
-                playerid = players.contents.result[player].playerid;
+        data = '{"jsonrpc":"2.0", "method":"Player.GetActivePlayers", "id":2}';
+        
+        sendByProxy(baseURL, data, 
+            function(data){
+                players = data;
                 
-                JSONdata = '{"jsonrpc":"2.0", "method":"' + cmd + '", "params":{"playerid":' + playerid + '}, "id":2}';
-                data = {  url: baseURL,
-                          data: JSONdata
-                       };
-
-                $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data });                
+                for (var player in players.result) {
+                    playerid = players.result[player].playerid;
+                    
+                    data = '{"jsonrpc":"2.0", "method":"' + cmd + '", "params":{"playerid":' + playerid + '}, "id":2}';
+                    // console.log(playerid);
+                    sendByProxy(baseURL, data);
+                }
             }
-
-
-        }});
+        );
     } else if (cmd == "Volume.Up" || cmd == "Volume.Down") {
-        data = {  url: baseURL,
-                  data: '{"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["volume"]},"id":2}'
-               };
-        $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data, 
-            success: function(data){
-                volume = data.contents.result.volume;
+        data = '{"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["volume"]},"id":2}';
+        
+        sendByProxy(baseURL, data, 
+            function(data){
+                volume = data.result.volume;
                 
                 if (cmd == "Volume.Up") {
                     volume += 1;
@@ -122,36 +161,17 @@ function doCommand(cmd){
                     volume -= 1;
                 }
                 
-                JSONdata = '{"jsonrpc": "2.0", "method": "Application.SetVolume", "params": { "volume": ' + volume + ' }, "id": 1}';
-                data = {  url: baseURL,
-                          data: JSONdata
-                       };
-
-                $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data });
+                data = '{"jsonrpc": "2.0", "method": "Application.SetVolume", "params": { "volume": ' + volume + ' }, "id": 1}';
                 
-            }});
+                sendByProxy(baseURL, data);
+            }
+        );
             
     } else {
-        JSONdata = '{"jsonrpc":"2.0", "method":"' + cmd + '", "id":2}';
-
-        data = {  url: baseURL,
-                  data: JSONdata
-               };
-     
-        $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data });                
+        data = '{"jsonrpc":"2.0", "method":"' + cmd + '", "id":2}';
+        
+        sendByProxy(baseURL, data);
     }
     
 };
 
-
-// function logEvent(event) {
-//     console.log(event.type);
-// }
-// 
-// window.applicationCache.addEventListener('checking',logEvent,false);
-// window.applicationCache.addEventListener('noupdate',logEvent,false);
-// window.applicationCache.addEventListener('downloading',logEvent,false);
-// window.applicationCache.addEventListener('cached',logEvent,false);
-// window.applicationCache.addEventListener('updateready',logEvent,false);
-// window.applicationCache.addEventListener('obsolete',logEvent,false);
-// window.applicationCache.addEventListener('error',logEvent,false);
