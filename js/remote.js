@@ -58,7 +58,7 @@ function dumpConfig(){
     }
 }
 
-var players;
+var volume;
 function doCommand(cmd){
     if( cmd == undefined ) {
         return;
@@ -108,7 +108,29 @@ function doCommand(cmd){
 
 
         }});
+    } else if (cmd == "Volume.Up" || cmd == "Volume.Down") {
+        data = {  url: baseURL,
+                  data: '{"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["volume"]},"id":2}'
+               };
+        $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data, 
+            success: function(data){
+                volume = data.contents.result.volume;
+                
+                if (cmd == "Volume.Up") {
+                    volume += 1;
+                } else {
+                    volume -= 1;
+                }
+                
+                JSONdata = '{"jsonrpc": "2.0", "method": "Application.SetVolume", "params": { "volume": ' + volume + ' }, "id": 1}';
+                data = {  url: baseURL,
+                          data: JSONdata
+                       };
 
+                $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data });
+                
+            }});
+            
     } else {
         JSONdata = '{"jsonrpc":"2.0", "method":"' + cmd + '", "id":2}';
 
