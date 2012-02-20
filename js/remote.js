@@ -58,6 +58,7 @@ function dumpConfig(){
     }
 }
 
+var players;
 function doCommand(cmd){
     if( cmd == undefined ) {
         return;
@@ -81,13 +82,42 @@ function doCommand(cmd){
         return;
     }
     
-    baseURL = "http://" + getConfigFromLocalStorage('host') + ":" + getConfigFromLocalStorage('port') + "/xbmcCmds/xbmcHttp";
-
-    data = "command=SetResponseFormat(WebHeader;False;WebFooter;False;header;console.log(\";footer;\");OpenTag; ;closetag; )";
-    $.ajax({ url: baseURL, dataType: "jsonp", jsonp: false, cache: false, data: data });
     
-    data = {command: "SendKey(" + cmd + ")"};
-    $.ajax({ url: baseURL, dataType: "jsonp", jsonp: false, cache: false, data: data });                
+    proxyURL = "proxy.php";
+    baseURL = "http://" + getConfigFromLocalStorage('host') + ":" + getConfigFromLocalStorage('port') + "/jsonrpc";
+
+    // data = {command: "SendKey(" + cmd + ")"};
+    if( cmd == "Player.PlayPause" || cmd == "Player.Stop") {
+        data = {  url: baseURL,
+                  data: '{"jsonrpc":"2.0", "method":"Player.GetActivePlayers", "id":2}'
+               };
+
+        $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data, success: function(data){
+            players = data;
+            
+            for (var player in players.contents.result) {
+                playerid = players.contents.result[player].playerid;
+                
+                JSONdata = '{"jsonrpc":"2.0", "method":"' + cmd + '", "params":{"playerid":' + playerid + '}, "id":2}';
+                data = {  url: baseURL,
+                          data: JSONdata
+                       };
+
+                $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data });                
+            }
+
+
+        }});
+
+    } else {
+        JSONdata = '{"jsonrpc":"2.0", "method":"' + cmd + '", "id":2}';
+
+        data = {  url: baseURL,
+                  data: JSONdata
+               };
+     
+        $.ajax({ type:"GET", url: proxyURL, dataType: "json", cache: true, data: data });                
+    }
     
 };
 
